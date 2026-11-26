@@ -9,16 +9,18 @@ import { routes, type VercelConfig } from "@vercel/config/v1";
  *   (Neon's Vercel integration sets both automatically)
  *   AUTH_SECRET            32+ random characters — `openssl rand -base64 48`
  *
- * Create the first Super Admin once, from your machine, against the
- * production database: `npm run db:seed` with SEED_SUPERADMIN_* set.
+ * Optional: SEED_SUPERADMIN_EMAIL + SEED_SUPERADMIN_PASSWORD create the first
+ * Super Admin during the build (existing accounts are never changed).
  */
 const config: VercelConfig = {
   framework: "nextjs",
   installCommand: "npm ci",
   // Generate the Prisma client explicitly (newer npm versions may skip
-  // dependency install scripts such as `postinstall`), then apply pending
-  // migrations before every build so schema and code ship together.
-  buildCommand: "prisma generate && prisma migrate deploy && next build",
+  // dependency install scripts such as `postinstall`), apply pending
+  // migrations, then run the idempotent seed: it ensures reference areas and,
+  // when SEED_SUPERADMIN_EMAIL / SEED_SUPERADMIN_PASSWORD are set on the
+  // project, creates that Super Admin if it doesn't exist yet.
+  buildCommand: "prisma generate && prisma migrate deploy && prisma db seed && next build",
 
   // Functions must run in the same region as the database: every page makes
   // several queries, so app-to-database distance matters most. Neon's Vercel

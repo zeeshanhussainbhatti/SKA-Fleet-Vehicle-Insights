@@ -30,15 +30,6 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
       description="Geographic segmentation of records across Karachi's seven districts — South, East, West, Central, Korangi, Malir and Keamari."
     />
   );
-  if (kpis.total === 0) {
-    return (
-      <>
-        {header}
-        <Card><EmptyState icon={<MapPinned />} title="No location data yet" description="District and area analytics appear once records with a registration district are stored." /></Card>
-      </>
-    );
-  }
-
   const [districts, matrix, areas] = await Promise.all([districtDistribution(), districtCategoryMatrix(), topAreas(selected ? { district: selected } : {}, 15)]);
   const located = districts.filter((d) => d.key !== "__null").reduce((a, d) => a + d.value, 0);
   const unlocated = kpis.total - located;
@@ -59,6 +50,15 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
     <>
       {header}
       <SyntheticNotice count={kpis.synthetic} total={kpis.total} />
+      {located === 0 && (
+        <div className="mb-6 flex items-start gap-3 rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-muted">
+          <MapPinned className="mt-0.5 size-4 shrink-0 text-primary" />
+          <span>
+            No records with a registration district yet. The map shows Karachi&apos;s seven districts; circle sizes and counts
+            fill in automatically as records are imported.
+          </span>
+        </div>
+      )}
       <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
         <Card className="overflow-hidden">
           <CardHeader title="District map" description="Circle size is proportional to the number of records registered in each district" />
@@ -76,7 +76,11 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
         <Card>
           <CardHeader title="District ranking" description="Share of records with a known district" />
           <CardBody>
-            <RankedBars data={districts.filter((d) => d.key !== "__null")} total={located} color="var(--chart-3)" />
+            {located ? (
+              <RankedBars data={districts.filter((d) => d.key !== "__null")} total={located} color="var(--chart-3)" />
+            ) : (
+              <EmptyState title="No district data yet" description="Rankings appear once records include a registration district." />
+            )}
           </CardBody>
         </Card>
       </div>

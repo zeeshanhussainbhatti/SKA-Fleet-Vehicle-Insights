@@ -15,8 +15,10 @@ import { routes, type VercelConfig } from "@vercel/config/v1";
 const config: VercelConfig = {
   framework: "nextjs",
   installCommand: "npm ci",
-  // Apply pending Prisma migrations before every build so schema and code ship together.
-  buildCommand: "prisma migrate deploy && next build",
+  // Generate the Prisma client explicitly (newer npm versions may skip
+  // dependency install scripts such as `postinstall`), then apply pending
+  // migrations before every build so schema and code ship together.
+  buildCommand: "prisma generate && prisma migrate deploy && next build",
 
   // Mumbai is the closest Vercel region to Karachi. Keep functions in the
   // same region as the database (e.g. Neon "AWS ap-south-1") for low latency.

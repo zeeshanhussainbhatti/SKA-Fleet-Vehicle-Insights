@@ -43,6 +43,17 @@ Optional, for UI testing only: `npm run seed:synthetic -- 2000`
 
 Production: `npm run build && npm start`. Set `AUTH_SECRET` to a strong random value (`openssl rand -base64 48`).
 
+## Deploying to Vercel
+
+Project settings live in `vercel.ts` (Next.js framework, `npm ci`, `prisma migrate deploy && next build`, Mumbai `bom1` region, security and no-cache API headers).
+
+1. Import the repository in Vercel.
+2. Add a Postgres database, e.g. Neon under **Storage**; this sets `DATABASE_URL`. Pick the AWS ap-south-1 (Mumbai) region so it sits next to the functions.
+3. Set `AUTH_SECRET` in **Settings → Environment Variables**.
+4. Deploy. Migrations run automatically on every build.
+5. Create the first Super Admin once from your machine:
+   `DATABASE_URL=… SEED_SUPERADMIN_EMAIL=… SEED_SUPERADMIN_PASSWORD=… npm run db:seed`
+
 ## Import format
 
 Download the template from *Import & History*. Required columns: **Registration Number, Vehicle Category, Manufacturer, Model**. Optional: Variant, Manufacturing Year, Registration Year, Registration Date (YYYY-MM-DD), Engine Capacity (CC), Fuel Type, Transmission, Vehicle Color, Body Type, Registration District, Registration Area, Vehicle Status, Data Source.

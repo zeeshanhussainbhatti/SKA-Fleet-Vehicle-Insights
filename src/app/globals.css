@@ -1,0 +1,157 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #f4f6fb;
+  --surface: #ffffff;
+  --surface-2: #f0f3f9;
+  --surface-3: #e7ecf5;
+  --border: #e1e7f0;
+  --border-strong: #cdd6e4;
+  --foreground: #0b1324;
+  --muted: #5a6a84;
+  --subtle: #8392aa;
+  --primary: #1d4ed8;
+  --primary-hover: #1a43bd;
+  --primary-soft: #e8efff;
+  --primary-foreground: #ffffff;
+  --accent: #3b82f6;
+  --navy: #0a1a3f;
+  --navy-2: #102657;
+  --navy-3: #1a3470;
+  --success: #0b8a5f;
+  --success-soft: #e3f6ee;
+  --warning: #b45309;
+  --warning-soft: #fdf1dd;
+  --danger: #c62828;
+  --danger-soft: #fdeaea;
+  --ring: #3b82f6;
+  --shadow-card: 0 1px 2px rgba(10, 26, 63, 0.04), 0 1px 1px rgba(10, 26, 63, 0.03);
+  --shadow-pop: 0 12px 32px -8px rgba(10, 26, 63, 0.18), 0 2px 6px rgba(10, 26, 63, 0.06);
+  --chart-1: #1d4ed8;
+  --chart-2: #3b82f6;
+  --chart-3: #0891b2;
+  --chart-4: #0d9488;
+  --chart-5: #6366f1;
+  --chart-6: #d97706;
+  --chart-7: #db2777;
+  --chart-8: #65a30d;
+  --chart-9: #64748b;
+  --chart-grid: #e6ebf3;
+  color-scheme: light;
+}
+
+.dark {
+  --background: #060b18;
+  --surface: #0b1426;
+  --surface-2: #101c33;
+  --surface-3: #16243f;
+  --border: #1a2843;
+  --border-strong: #24365a;
+  --foreground: #e5ebf6;
+  --muted: #8b9bb7;
+  --subtle: #64748f;
+  --primary: #4f7dff;
+  --primary-hover: #6a91ff;
+  --primary-soft: #142650;
+  --primary-foreground: #ffffff;
+  --accent: #60a5fa;
+  --navy: #050b19;
+  --navy-2: #0b1730;
+  --navy-3: #13244a;
+  --success: #34d399;
+  --success-soft: #0d2a22;
+  --warning: #fbbf24;
+  --warning-soft: #2c2310;
+  --danger: #f87171;
+  --danger-soft: #2f1416;
+  --ring: #60a5fa;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-pop: 0 16px 40px -10px rgba(0, 0, 0, 0.6);
+  --chart-1: #4f7dff;
+  --chart-2: #60a5fa;
+  --chart-3: #22d3ee;
+  --chart-4: #2dd4bf;
+  --chart-5: #818cf8;
+  --chart-6: #fbbf24;
+  --chart-7: #f472b6;
+  --chart-8: #a3e635;
+  --chart-9: #94a3b8;
+  --chart-grid: #17243d;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-navy: var(--navy);
+  --color-navy-2: var(--navy-2);
+  --color-navy-3: var(--navy-3);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-ring: var(--ring);
+  --shadow-card: var(--shadow-card);
+  --shadow-pop: var(--shadow-pop);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-face), ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--primary) 25%, transparent);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Leaflet container theming */
+.leaflet-container {
+  background: var(--surface-2) !important;
+  font-family: var(--font-sans) !important;
+  border-radius: 10px;
+}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--surface) !important;
+  color: var(--foreground) !important;
+  box-shadow: var(--shadow-pop) !important;
+}
+.dark .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(195deg) brightness(0.85) contrast(0.9) saturate(0.6);
+}

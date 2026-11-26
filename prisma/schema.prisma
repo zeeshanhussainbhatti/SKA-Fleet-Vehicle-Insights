@@ -1,0 +1,257 @@
+// SKA Vehicle Intelligence (SKA-VI) — data model
+// PostgreSQL + Prisma ORM
+//
+// Privacy by design: this schema deliberately stores NO personal ownership
+// information (owner name, CNIC, phone, address). Adding such fields must only
+// be done where the operator is legally authorised to process that data.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────── Identity & Access ───────────────────────────
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  DATA_MANAGER
+  VIEWER
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+model User {
+  id               String     @id @default(cuid())
+  name             String
+  email            String     @unique
+  passwordHash     String
+  role             Role       @default(VIEWER)
+  status           UserStatus @default(ACTIVE)
+  // Incremented on password change / suspension to invalidate existing sessions
+  sessionVersion   Int        @default(1)
+  failedLoginCount Int        @default(0)
+  lockedUntil      DateTime?
+  lastLoginAt      DateTime?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  createdById      String?
+
+  auditLogs        AuditLog[]
+  importBatches    ImportBatch[]
+  createdVehicles  Vehicle[]     @relation("VehicleCreatedBy")
+  updatedVehicles  Vehicle[]     @relation("VehicleUpdatedBy")
+}
+
+// ─────────────────────────────── Reference data ──────────────────────────────
+
+enum District {
+  KARACHI_SOUTH
+  KARACHI_EAST
+  KARACHI_WEST
+  KARACHI_CENTRAL
+  KORANGI
+  MALIR
+  KEAMARI
+}
+
+enum VehicleCategory {
+  CAR
+  SUV
+  MOTORCYCLE
+  TRUCK
+  BUS
+  VAN
+  RICKSHAW
+  COMMERCIAL
+  OTHER
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  CNG
+  LPG
+  HYBRID
+  ELECTRIC
+  OTHER
+}
+
+enum Transmission {
+  MANUAL
+  AUTOMATIC
+  CVT
+  AMT
+  OTHER
+}
+
+enum VehicleStatus {
+  ACTIVE
+  INACTIVE
+  TRANSFERRED
+  SCRAPPED
+  STOLEN
+  UNKNOWN
+}
+
+model Manufacturer {
+  id        String         @id @default(cuid())
+  name      String         @unique
+  createdAt DateTime       @default(now())
+  models    VehicleModel[]
+  vehicles  Vehicle[]
+}
+
+model VehicleModel {
+  id             String       @id @default(cuid())
+  name           String
+  manufacturerId String
+  manufacturer   Manufacturer @relation(fields: [manufacturerId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  vehicles       Vehicle[]
+
+  @@unique([manufacturerId, name])
+}
+
+model Area {
+  id        String    @id @default(cuid())
+  name      String
+  district  District
+  createdAt DateTime  @default(now())
+  vehicles  Vehicle[]
+
+  @@unique([district, name])
+}
+
+// ─────────────────────────────── Vehicles ────────────────────────────────────
+
+model Vehicle {
+  id                 String          @id @default(cuid())
+  // Human-facing unique vehicle ID, rendered as SKA-0000001
+  vehicleNo          Int             @unique @default(autoincrement())
+  // Normalised (upper-case, single dash) registration number
+  registrationNumber String          @unique
+  category           VehicleCategory
+  manufacturerId     String
+  manufacturer       Manufacturer    @relation(fields: [manufacturerId], references: [id])
+  modelId            String
+  model              VehicleModel    @relation(fields: [modelId], references: [id])
+  variant            String?
+  manufacturingYear  Int?
+  registrationYear   Int?
+  // Optional exact registration date — enables monthly registration trends
+  registrationDate   DateTime?       @db.Date
+  engineCapacityCc   Int?
+  fuelType           FuelType?
+  transmission       Transmission?
+  color              String?
+  bodyType           String?
+  district           District?
+  areaId             String?
+  area               Area?           @relation(fields: [areaId], references: [id])
+  status             VehicleStatus   @default(ACTIVE)
+  dataSource         String
+  importBatchId      String?
+  importBatch        ImportBatch?    @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  createdById        String?
+  createdBy          User?           @relation("VehicleCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedById        String?
+  updatedBy          User?           @relation("VehicleUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([category])
+  @@index([manufacturerId])
+  @@index([modelId])
+  @@index([manufacturingYear])
+  @@index([registrationYear])
+  @@index([registrationDate])
+  @@index([engineCapacityCc])
+  @@index([fuelType])
+  @@index([color])
+  @@index([district])
+  @@index([areaId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([dataSource])
+}
+
+// ─────────────────────────────── Data management ─────────────────────────────
+
+enum ImportStatus {
+  PROCESSING
+  COMPLETED
+  COMPLETED_WITH_ERRORS
+  FAILED
+  VALIDATED // dry-run: validated only, nothing written
+}
+
+enum DuplicateStrategy {
+  SKIP
+  UPDATE
+}
+
+model ImportBatch {
+  id                String            @id @default(cuid())
+  fileName          String
+  fileType          String
+  fileSizeBytes     Int
+  status            ImportStatus      @default(PROCESSING)
+  duplicateStrategy DuplicateStrategy @default(SKIP)
+  dryRun            Boolean           @default(false)
+  dataSource        String
+  totalRows         Int               @default(0)
+  insertedRows      Int               @default(0)
+  updatedRows       Int               @default(0)
+  duplicateRows     Int               @default(0)
+  errorRows         Int               @default(0)
+  message           String?
+  userId            String?
+  user              User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt         DateTime          @default(now())
+  completedAt       DateTime?
+  errors            ImportError[]
+  vehicles          Vehicle[]
+
+  @@index([createdAt])
+}
+
+model ImportError {
+  id        String      @id @default(cuid())
+  batchId   String
+  batch     ImportBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  rowNumber Int
+  field     String?
+  message   String
+  kind      String      @default("VALIDATION") // VALIDATION | DUPLICATE_IN_FILE | DUPLICATE_IN_DB
+  rawData   Json?
+
+  @@index([batchId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userEmail  String?
+  action     String
+  entityType String
+  entityId   String?
+  summary    String
+  details    Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId])
+  @@index([action])
+  @@index([entityType])
+}

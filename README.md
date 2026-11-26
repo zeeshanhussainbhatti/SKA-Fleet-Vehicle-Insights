@@ -45,10 +45,10 @@ Production: `npm run build && npm start`. Set `AUTH_SECRET` to a strong random v
 
 ## Deploying to Vercel
 
-Project settings live in `vercel.ts` (Next.js framework, `npm ci`, `prisma generate && prisma migrate deploy && next build`, Mumbai `bom1` region, security and no-cache API headers).
+Project settings live in `vercel.ts` (Next.js framework, `npm ci`, `prisma generate && prisma migrate deploy && next build`, Frankfurt `fra1` region, next to the database, security and no-cache API headers).
 
 1. Import the repository in Vercel.
-2. Add a Postgres database, e.g. Neon under **Storage**, connected to Production, Preview and Development. Pick AWS ap-south-1 (Mumbai) so it sits next to the functions. Neon's integration sets both `DATABASE_URL` (pooled, used by the app) and `DATABASE_URL_UNPOOLED` (direct, used by migrations). With another provider, set both yourself; without a connection pooler they can be the same value.
+2. Add a Postgres database, e.g. Neon under **Storage**, connected to Production, Preview and Development. Pick **Frankfurt (AWS eu-central-1)**, the nearest Neon region to Karachi, so it sits next to the functions (`fra1`). Neon's integration sets both `DATABASE_URL` (pooled, used by the app) and `DATABASE_URL_UNPOOLED` (direct, used by migrations). With another provider, set both yourself; without a connection pooler they can be the same value.
 3. Set `AUTH_SECRET` in **Settings → Environment Variables**.
 4. Deploy. Migrations run automatically on every build.
 5. Create the first Super Admin once from your machine:

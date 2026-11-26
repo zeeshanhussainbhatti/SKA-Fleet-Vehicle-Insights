@@ -20,9 +20,11 @@ const config: VercelConfig = {
   // migrations before every build so schema and code ship together.
   buildCommand: "prisma generate && prisma migrate deploy && next build",
 
-  // Mumbai is the closest Vercel region to Karachi. Keep functions in the
-  // same region as the database (e.g. Neon "AWS ap-south-1") for low latency.
-  regions: ["bom1"],
+  // Functions must run in the same region as the database: every page makes
+  // several queries, so app-to-database distance matters most. Neon's Vercel
+  // integration offers no Asian region, and Frankfurt (AWS eu-central-1) is
+  // its nearest region to Karachi. Change both together if you move the database.
+  regions: ["fra1"],
 
   headers: [
     routes.header("/(.*)", [

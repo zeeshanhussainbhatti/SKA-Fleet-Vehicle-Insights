@@ -32,7 +32,7 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · shadcn-st
 ## Getting started
 
 ```bash
-cp .env.example .env          # set DATABASE_URL, AUTH_SECRET (32+ chars), seed admin credentials
+cp .env.example .env          # set DATABASE_URL, DATABASE_URL_UNPOOLED, AUTH_SECRET (32+ chars), seed admin credentials
 npm install                   # also runs prisma generate
 npx prisma migrate deploy     # create tables
 npm run db:seed               # Super Admin + Karachi reference areas (no vehicles)
@@ -48,11 +48,11 @@ Production: `npm run build && npm start`. Set `AUTH_SECRET` to a strong random v
 Project settings live in `vercel.ts` (Next.js framework, `npm ci`, `prisma migrate deploy && next build`, Mumbai `bom1` region, security and no-cache API headers).
 
 1. Import the repository in Vercel.
-2. Add a Postgres database, e.g. Neon under **Storage**; this sets `DATABASE_URL`. Pick the AWS ap-south-1 (Mumbai) region so it sits next to the functions.
+2. Add a Postgres database, e.g. Neon under **Storage**, connected to Production, Preview and Development. Pick AWS ap-south-1 (Mumbai) so it sits next to the functions. Neon's integration sets both `DATABASE_URL` (pooled, used by the app) and `DATABASE_URL_UNPOOLED` (direct, used by migrations). With another provider, set both yourself; without a connection pooler they can be the same value.
 3. Set `AUTH_SECRET` in **Settings → Environment Variables**.
 4. Deploy. Migrations run automatically on every build.
 5. Create the first Super Admin once from your machine:
-   `DATABASE_URL=… SEED_SUPERADMIN_EMAIL=… SEED_SUPERADMIN_PASSWORD=… npm run db:seed`
+   `DATABASE_URL=… DATABASE_URL_UNPOOLED=… SEED_SUPERADMIN_EMAIL=… SEED_SUPERADMIN_PASSWORD=… npm run db:seed`
 
 ## Import format
 
